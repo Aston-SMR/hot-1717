@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Dual System Card Counting</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dual System">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+:root{
+  --bg:#050505;
+  --gold:#f5d06f;
+  --gold2:#c89b3c;
+  --line:#3a2c12;
+  --text:#f7e7b3;
+  --muted:#bba676;
+  --blue:#60a5fa;
+  --red:#f87171;
+  --green:#34d399;
+  --orange:#fb923c;
+  --gray:#94a3b8;
+  --panel:#101010;
+  --panel2:#171717;
+  --shadow:0 0 0 1px rgba(245,208,111,.10), 0 8px 18px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  background:radial-gradient(circle at top,#15110a 0%,#080808 35%,#000 100%);
+  font-family:Arial,"Microsoft JhengHei",sans-serif;
+}
+body{color:var(--text)}
+
+.app{
+  max-width:920px;
+  margin:0 auto;
+  padding:8px;
+  display:grid;
+  gap:8px;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:10px 12px;
+  background:linear-gradient(180deg,#1a1408 0%, #0d0d0d 100%);
+  box-shadow:var(--shadow);
+}
+.logo-mark{
+  width:38px;height:38px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:900;color:#111;
+  background:linear-gradient(135deg,#fff2c2 0%,#f5d06f 45%,#b8872e 100%);
+  box-shadow:0 0 12px rgba(245,208,111,.35);
+}
+.logo-title{
+  color:#fff4cf;
+  font-size:18px;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:.5px;
+}
+.logo-sub{
+  color:#bfa56b;
+  font-size:10px;
+  letter-spacing:2px;
+  margin-top:3px;
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.side{
+  background:linear-gradient(180deg,#181818 0%, #101010 100%);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:10px 8px;
+  box-shadow:var(--shadow);
+}
+.side-title{
+  text-align:center;
+  font-size:16px;
+  font-weight:900;
+  color:#fff2c7;
+  margin-bottom:8px;
+}
+.side-sub{
+  display:block;
+  font-size:10px;
+  color:var(--muted);
+  margin-top:3px;
+}
+.card-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+.card-cell{
+  height:54px;
+  border-radius:14px;
+  border:1px solid #5a4319;
+  background:linear-gradient(180deg,#1d1d1d 0%,#121212 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
+  font-weight:900;
+  color:#fff7dd;
+  user-select:none;
+  cursor:pointer;
+}
+.card-cell.span2{grid-column:1 / span 2}
+.card-cell.active{
+  border-color:#f5d06f;
+  box-shadow:0 0 0 2px rgba(245,208,111,.14), 0 0 12px rgba(245,208,111,.14) inset;
+  background:linear-gradient(180deg,#32270f 0%,#19150d 100%);
+}
+.card-cell.empty::after{
+  font-size:12px;
+  font-weight:800;
+  color:#8a7b57;
+}
+.p1.empty::after{content:"P1"}
+.p2.empty::after{content:"P2"}
+.p3.empty::after{content:"P3"}
+.b1.empty::after{content:"B1"}
+.b2.empty::after{content:"B2"}
+.b3.empty::after{content:"B3"}
+
+.main-panel,
+.predict,
+.keys-panel,
+.history-panel{
+  background:linear-gradient(180deg,#171717 0%, #101010 100%);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:10px;
+  box-shadow:var(--shadow);
+}
+
+.info-row{
+  display:grid;
+  grid-template-columns:auto auto 1fr auto auto;
+  gap:6px;
+  align-items:center;
+}
+.badge{
+  min-width:68px;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+  border:1px solid #4a3717;
+  background:#131313;
+}
+.badge.player{color:var(--blue)}
+.badge.banker{color:var(--red)}
+.winner{
+  font-size:18px;
+  font-weight:900;
+  text-align:center;
+}
+.winner.player{color:var(--blue)}
+.winner.banker{color:var(--red)}
+.winner.tie{color:var(--green)}
+
+.round-box{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  border:1px solid #4a3717;
+  background:#101010;
+  border-radius:11px;
+  padding:5px 8px;
+}
+.round-box span{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:900;
+}
+.round-input{
+  width:58px;
+  border:1px solid #5a4319;
+  border-radius:9px;
+  padding:5px 6px;
+  font-size:12px;
+  background:#181818;
+  color:#fff1c5;
+}
+.btn{
+  border:none;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+  color:#111;
+  background:linear-gradient(180deg,#f5d06f 0%, #c89b3c 100%);
+}
+.btn:active{transform:scale(.98)}
+.btn-clear{
+  background:linear-gradient(180deg,#e7e5e4 0%, #a8a29e 100%);
+}
+.btn-history{
+  background:linear-gradient(180deg,#fda4af 0%, #dc2626 100%);
+  color:#fff;
+}
+.detail{
+  margin-top:8px;
+  min-height:18px;
+  font-size:14px;
+  color:#d8c28a;
+}
+
+.predict-line{
+  font-size:30px;
+  font-weight:900;
+  line-height:1.15;
+  word-break:break-word;
+  color:#fff5d8;
+}
+.predict-meta{
+  margin-top:6px;
+  font-size:15px;
+  line-height:1.35;
+  color:#d8c28a;
+}
+.m-label{color:var(--red)}
+.t-label{color:var(--green)}
+.r-label{color:var(--orange)}
+
+.stats{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.stat{
+  background:linear-gradient(180deg,#191919 0%, #121212 100%);
+  border:1px solid #4a3717;
+  border-radius:14px;
+  padding:10px 6px;
+  text-align:center;
+}
+.stat.best{
+  border-color:#f5d06f;
+  box-shadow:0 0 0 1px rgba(245,208,111,.25),0 0 14px rgba(245,208,111,.20);
+}
+.stat-name{
+  font-size:14px;
+  font-weight:900;
+  color:var(--muted);
+}
+.stat-rate{
+  margin-top:5px;
+  font-size:20px;
+  font-weight:900;
+}
+.stat.m .stat-rate{color:var(--red)}
+.stat.t .stat-rate{color:var(--green)}
+.stat.r .stat-rate{color:var(--orange)}
+.stat.ds .stat-rate{color:#22c55e}
+
+.heat{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+}
+.heat-box,.power-box{
+  background:linear-gradient(180deg,#1a1a1a 0%,#111 100%);
+  border:1px solid #4a3717;
+  border-radius:14px;
+  padding:10px 12px;
+  font-size:15px;
+  font-weight:900;
+  color:#e8d2a1;
+}
+.power-strong{color:#111;background:#ef4444}
+.power-mid{color:#111;background:#fb923c}
+.power-low{color:#111;background:#60a5fa}
+.power-wait{color:#111;background:#9ca3af}
+
+.keys-panel{
+  padding:8px 10px 10px;
+  height:auto;
+}
+.key-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
+}
+.key{
+  border:1px solid #45351a;
+  background:linear-gradient(180deg,#1f1f1f 0%, #121212 100%);
+  border-radius:12px;
+  min-height:44px;
+  font-size:16px;
+  font-weight:900;
+  color:#f9e3a4;
+  cursor:pointer;
+  touch-action:manipulation;
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset;
+}
+.key:active{
+  transform:scale(.97);
+  box-shadow:0 0 10px rgba(245,208,111,.15);
+}
+.key.skip{
+  color:#d1d5db;
+}
+
+.history-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  margin-bottom:8px;
+}
+.history-title{
+  font-size:16px;
+  font-weight:900;
+  color:#fff1c8;
+}
+.history-sub{
+  font-size:12px;
+  color:var(--muted);
+}
+.history-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.history-empty{
+  font-size:14px;
+  color:var(--muted);
+  padding-top:4px;
+}
+.h-item{
+  border:1px solid #4a3717;
+  border-radius:12px;
+  background:linear-gradient(180deg,#1b1b1b 0%, #121212 100%);
+  padding:8px;
+}
+.h-top{
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+.h-grid{
+  display:grid;
+  grid-template-columns:118px 1fr 82px;
+  gap:8px;
+  align-items:center;
+}
+.h-cards{
+  font-size:13px;
+  line-height:1.35;
+  color:#f2dfaf;
+}
+.h-mtr{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+.h-mtr > div{
+  font-size:13px;
+  line-height:1.25;
+  text-align:center;
+  border:1px solid #4a3717;
+  border-radius:10px;
+  padding:9px 4px;
+  white-space:nowrap;
+  overflow:hidden;
+  color:#111;
+  font-weight:900;
+}
+.h-result{
+  font-size:13px;
+  font-weight:900;
+  text-align:center;
+  border-radius:999px;
+  padding:10px 6px;
+  color:#111;
+}
+.hit{
+  color:#111;
+  background:#16a34a;
+}
+.miss{
+  color:#111;
+  background:#dc2626;
+}
+.draw{
+  color:#111;
+  background:#64748b;
+}
+.status-hit{
+  color:#111;
+  font-weight:900;
+}
+.status-miss{
+  color:#111;
+  font-weight:900;
+}
+.status-draw{
+  color:#111;
+  font-weight:900;
+}
+
+
+@media (max-width:700px){
+  .app{padding:6px;gap:6px}
+  .logo{padding:8px 10px;border-radius:16px}
+  .logo-mark{width:34px;height:34px;font-size:18px}
+  .logo-title{font-size:15px}
+  .logo-sub{font-size:9px}
+  .top{gap:6px}
+  .side{padding:8px 6px;border-radius:16px}
+  .side-title{font-size:14px;margin-bottom:6px}
+  .side-sub{font-size:9px}
+  .card-grid{gap:5px}
+  .card-cell{height:48px;font-size:16px;border-radius:12px}
+  .card-cell.empty::after{font-size:11px}
+
+  .main-panel,.predict,.keys-panel,.history-panel{padding:8px;border-radius:16px}
+  .info-row{grid-template-columns:auto auto 1fr auto auto;gap:4px}
+  .badge{min-width:52px;font-size:11px;padding:5px 6px}
+  .winner{font-size:16px}
+  .btn{font-size:11px;padding:7px 8px;border-radius:10px}
+  .detail{font-size:11px;margin-top:6px}
+
+  .predict-line{font-size:18px}
+  .predict-meta{font-size:11px}
+
+  .keys-panel{padding:7px}
+  .key-grid{gap:4px}
+  .key{
+    min-height:34px;
+    font-size:12px;
+    border-radius:10px;
+  }
+
+  /* 極限單列歷史紀錄 */
+  .history-head{margin-bottom:2px}
+  .history-title{font-size:12px}
+  .history-sub{font-size:7px}
+
+  .history-list{gap:1px}
+
+  .h-item{
+    padding:4px;
+    border-radius:6px;
+  }
+
+  .h-top{
+    font-size:7px;
+    margin-bottom:1px;
+    line-height:1;
+  }
+
+  .h-grid{
+    display:flex;
+    align-items:center;
+    gap:1px;
+  }
+
+  .h-cards{
+    min-width:68px;
+    font-size:10px;
+    line-height:1;
+  }
+
+  .h-mtr{
+    display:flex;
+    flex:1;
+    gap:1px;
+  }
+
+  .h-mtr>div{
+    flex:1;
+    font-size:9px;
+    padding:2px;
+    border-radius:4px;
+    line-height:1;
+  }
+
+  .h-result{
+    min-width:52px;
+    font-size:9px;
+    padding:1px;
+    line-height:1;
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo">
+    <div class="logo-mark">D</div>
+    <div>
+      <div class="logo-title">HOT System Card Counting</div>
+      <div class="logo-sub">MATRIX × RUNNING × DS</div>
+    </div>
+  </div>
+
+  <div class="top">
+    <div class="side">
+      <div class="side-title">PLAYER<span class="side-sub">閒家</span></div>
+      <div class="card-grid">
+        <div class="card-cell empty p1" data-index="0"></div>
+        <div class="card-cell empty p2" data-index="1"></div>
+        <div class="card-cell empty p3 span2" data-index="4"></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="side-title">BANKER<span class="side-sub">莊家</span></div>
+      <div class="card-grid">
+        <div class="card-cell empty b1" data-index="2"></div>
+        <div class="card-cell empty b2" data-index="3"></div>
+        <div class="card-cell empty b3 span2" data-index="5"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-panel">
+    <div class="info-row">
+      <div class="badge player" id="playerScore">閒 0</div>
+      <div class="badge banker" id="bankerScore">莊 0</div>
+      <div class="winner tie" id="winnerText">和局</div>
+      <button id="nextBtn" class="btn" type="button">下一局</button>
+      <button id="clearBoardBtn" class="btn btn-clear" type="button">清除本局</button>
+    </div>
+    <div class="detail" id="detailText">請依序輸入牌面</div>
+  </div>
+
+  <div class="predict">
+    <div class="predict-line" id="linePredict">M:-　R:-　DS:-</div>
+    <div class="predict-meta" id="linePredictMeta">M點差:-/公牌:-｜R尾數:-/翻邊:-｜DS大小牌:-</div>
+
+    <div class="stats" id="lineStats">
+      <div class="stat m"><div class="stat-name">M勝率</div><div class="stat-rate">0%</div></div>
+      <div class="stat r"><div class="stat-name">R勝率</div><div class="stat-rate">0%</div></div>
+      <div class="stat ds"><div class="stat-name">DS勝率</div><div class="stat-rate">0%</div></div>
+    </div>
+
+    <div class="heat">
+      <div class="heat-box" id="heatBox">熱區判斷：目前尚無資料</div>
+      <div class="power-box power-wait" id="powerBox">下注：觀望</div>
+    </div>
+  </div>
+
+  <div class="keys-panel">
+    <div class="key-grid" id="cardButtons">
+      <button class="key" type="button" data-card="A">A</button>
+      <button class="key" type="button" data-card="2">2</button>
+      <button class="key" type="button" data-card="3">3</button>
+      <button class="key" type="button" data-card="4">4</button>
+      <button class="key" type="button" data-card="5">5</button>
+      <button class="key" type="button" data-card="6">6</button>
+      <button class="key" type="button" data-card="7">7</button>
+      <button class="key" type="button" data-card="8">8</button>
+      <button class="key" type="button" data-card="9">9</button>
+      <button class="key" type="button" data-card="10">10</button>
+      <button class="key" type="button" data-card="J">J</button>
+      <button class="key" type="button" data-card="Q">Q</button>
+      <button class="key" type="button" data-card="K">K</button>
+      <button class="key skip" type="button" id="skipBtn">不補</button>
+    </div>
+  </div>
+
+  <div class="history-panel">
+    <div class="history-head">
+      <div>
+        <div class="history-title">歷史紀錄</div>
+        <div class="history-sub">最近 10 筆｜M / R 雙系統</div>
+      </div>
+      <button id="clearHistoryBtn" class="btn btn-history" type="button">清除歷史</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'dual_system_mr_v1';
+  const MAX_HISTORY = 10;
+
+  let values = ['', '', '', '', '', ''];
+  const order = [0, 1, 2, 3, 4, 5];
+  let currentStep = 0;
+  let selectedIndex = null;
+  let historyData = [];
+  let pendingPrediction = null;
+  let saveTimer = null;
+  let roundCounter = 1;
+
+  const cells = Array.from(document.querySelectorAll('.card-cell'));
+  const cardButtonsEl = document.getElementById('cardButtons');
+  const nextBtn = document.getElementById('nextBtn');
+  const clearBoardBtn = document.getElementById('clearBoardBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+  const playerScoreEl = document.getElementById('playerScore');
+  const bankerScoreEl = document.getElementById('bankerScore');
+  const winnerTextEl = document.getElementById('winnerText');
+  const detailTextEl = document.getElementById('detailText');
+  const linePredictEl = document.getElementById('linePredict');
+  const linePredictMetaEl = document.getElementById('linePredictMeta');
+  const lineStatsEl = document.getElementById('lineStats');
+  const heatBoxEl = document.getElementById('heatBox');
+  const powerBoxEl = document.getElementById('powerBox');
+  const historyListEl = document.getElementById('historyList');
+
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveToStorage, 120);
+  }
+
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        values,
+        currentStep,
+        selectedIndex,
+        historyData,
+        pendingPrediction,
+        roundCounter
+      }));
+    } catch (e) {}
+  }
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.values) && data.values.length === 6) values = data.values;
+      currentStep = Number.isInteger(data.currentStep) ? data.currentStep : 0;
+      selectedIndex = Number.isInteger(data.selectedIndex) ? data.selectedIndex : null;
+      historyData = Array.isArray(data.historyData) ? data.historyData.slice(0, MAX_HISTORY) : [];
+      pendingPrediction = data.pendingPrediction || null;
+      roundCounter = Number.isInteger(data.roundCounter) && data.roundCounter > 0 ? data.roundCounter : 1;
+    } catch (e) {}
+  }
+
+  function getValue(card) {
+    if (!card) return 0;
+    if (card === 'A') return 1;
+    if (card === '10' || card === 'J' || card === 'Q' || card === 'K') return 0;
+    return parseInt(card, 10) || 0;
+  }
+
+  function getCards(arr) {
+    return arr.filter(Boolean);
+  }
+
+  function getActualResultLabel(playerTotal, bankerTotal) {
+    if (playerTotal > bankerTotal) return '閒';
+    if (bankerTotal > playerTotal) return '莊';
+    return '和';
+  }
+
+  function getWinnerClass(actual) {
+    if (actual === '閒') return 'winner player';
+    if (actual === '莊') return 'winner banker';
+    return 'winner tie';
+  }
+
+  function getHistoryStatus(prediction, actual) {
+    if (actual === '和') return '-';
+    if (prediction !== '閒' && prediction !== '莊') return '-';
+    return prediction === actual ? '準' : '失敗';
+  }
+
+  function isNatural(p2, b2) {
+    return p2 >= 8 || b2 >= 8;
+  }
+
+  function shouldPlayerDraw(p2) {
+    return p2 <= 5;
+  }
+
+  function shouldBankerDraw(b2, playerThird, playerDrew) {
+    if (!playerDrew) return b2 <= 5;
+    const pt = getValue(playerThird);
+    if (b2 <= 2) return true;
+    if (b2 === 3) return pt !== 8;
+    if (b2 === 4) return pt >= 2 && pt <= 7;
+    if (b2 === 5) return pt >= 4 && pt <= 7;
+    if (b2 === 6) return pt === 6 || pt === 7;
+    return false;
+  }
+
+  function getPickValueHtml(p) {
+    if (p === '閒') return '<span style="color:#60a5fa;font-weight:900;">閒</span>';
+    if (p === '莊') return '<span style="color:#f87171;font-weight:900;">莊</span>';
+    return '<span style="color:#9ca3af;font-weight:900;">' + p + '</span>';
+  }
+
+  function colorPick(name, p) {
+    const map = { M:'m-label', R:'r-label' };
+    return '<span class="' + map[name] + '">' + name + ':</span>' + getPickValueHtml(p);
+  }
+
+  function evaluateM(playerCards, bankerCards, allCards) {
+    if (playerCards.length < 2 || bankerCards.length < 2) {
+      return { pick:'待輸入', meta:'點差：-\n公牌奇偶：-' };
+    }
+    const playerTotalRaw = playerCards.reduce((s, c) => s + getValue(c), 0);
+    const bankerTotalRaw = bankerCards.reduce((s, c) => s + getValue(c), 0);
+    const diff = playerTotalRaw - bankerTotalRaw;
+    const sign1 = diff >= 0 ? '正' : '負';
+    const publicCount = allCards.filter(c => ['10','J','Q','K'].includes(c)).length;
+    const sign2 = publicCount % 2 === 0 ? '正' : '負';
+    const finalSign = sign1 === sign2 ? '正' : '負';
+    return {
+      pick: finalSign === '正' ? '閒' : '莊',
+      meta: '點差：' + diff + '\n公牌奇偶：' + (publicCount % 2 === 0 ? '正' : '負')
+    };
+  }
+
+
+  function evaluateDS(allCards) {
+  const playerCards = [values[0], values[1], values[4]].filter(Boolean);
+  const bankerCards = [values[2], values[3], values[5]].filter(Boolean);
+
+  const isBig = c => ['8','9'].includes(c);
+  const isSmall = c => ['A','2','3','4','5','6','7'].includes(c);
+
+  const pBig = playerCards.filter(isBig).length;
+  const bBig = bankerCards.filter(isBig).length;
+
+  const pSmall = playerCards.filter(isSmall).length;
+  const bSmall = bankerCards.filter(isSmall).length;
+
+  let pick = '觀望';
+
+  // 優先看8、9
+  if (pBig > bBig) {
+    pick = '閒';
+  }
+  else if (bBig > pBig) {
+    pick = '莊';
+  }
+  else {
+
+    // 大牌相同時比較小牌
+    if (pSmall > bSmall) {
+      pick = '莊'; // 小牌多打對家
+    }
+    else if (bSmall > pSmall) {
+      pick = '閒'; // 小牌多打對家
+    }
+    else {
+      pick = '觀望';
+    }
+  }
+
+  return {
+    pick,
+    meta:
+      '閒大:' + pBig +
+      ' 莊大:' + bBig +
+      '｜閒小:' + pSmall +
+      ' 莊小:' + bSmall
+  };
+}
+
+  function evaluateR(playerCards, bankerCards, allCards) {
+    if (playerCards.length < 2 || bankerCards.length < 2) {
+      return { pick:'待輸入', meta:'尾數：-\n翻邊：-', flip:false };
+    }
+    const playerRaw = playerCards.reduce((s, c) => s + getValue(c), 0);
+    const bankerRaw = bankerCards.reduce((s, c) => s + getValue(c), 0);
+    const tail = (playerRaw % 10) + (bankerRaw % 10);
+    const publicCount = allCards.filter(c => ['10','J','Q','K'].includes(c)).length;
+    const flip = allCards.length === 5 || allCards.length === 6 || (allCards.length === 4 && publicCount === 0);
+
+    let pick = tail === 19 ? '閒' : '莊';
+    if (flip) pick = pick === '閒' ? '莊' : '閒';
+
+    return {
+      pick,
+      meta: '尾數：' + tail + '\n翻邊：' + (flip ? '是' : '否'),
+      flip
+    };
+  }
+
+  function getRoundState() {
+    const playerCards = getCards([values[0], values[1], values[4]]);
+    const bankerCards = getCards([values[2], values[3], values[5]]);
+    const allCards = playerCards.concat(bankerCards);
+
+    const p2 = (getValue(values[0]) + getValue(values[1])) % 10;
+    const b2 = (getValue(values[2]) + getValue(values[3])) % 10;
+    const playerThird = values[4] || null;
+    const bankerThird = values[5] || null;
+
+    let info = '請依序輸入牌面';
+    if (values[0] && values[1] && values[2] && values[3]) {
+      if (isNatural(p2, b2)) {
+        info = '天牌（不補）';
+      } else {
+        info = '';
+        if (playerThird === null) info += shouldPlayerDraw(p2) ? '閒應補牌 ' : '閒不補 ';
+        if (bankerThird === null) {
+          if (playerThird === null && shouldPlayerDraw(p2)) info += '莊待閒第三張後判定';
+          else info += shouldBankerDraw(b2, playerThird, playerThird !== null) ? '莊應補牌' : '莊不補';
+        }
+        if (!info.trim()) info = '本局已輸入完成';
+      }
+    }
+
+    const hasEnough = playerCards.length >= 2 && bankerCards.length >= 2;
+    const playerTotal = hasEnough ? playerCards.reduce((s, c) => s + getValue(c), 0) % 10 : null;
+    const bankerTotal = hasEnough ? bankerCards.reduce((s, c) => s + getValue(c), 0) % 10 : null;
+    const actual = hasEnough ? getActualResultLabel(playerTotal, bankerTotal) : '-';
+
+    return {
+      playerCards,
+      bankerCards,
+      allCards,
+      playerTotal,
+      bankerTotal,
+      actual,
+      info,
+      m: evaluateM(playerCards, bankerCards, allCards),
+      r: evaluateR(playerCards, bankerCards, allCards),
+      ds: evaluateDS(allCards)
+    };
+  }
+
+  function formatPredictMeta(mMeta, rMeta) {
+    const mParts = String(mMeta).split('\n');
+    const rParts = String(rMeta).split('\n');
+
+    return 'M點差:' + (mParts[0] || '點差：-').replace('點差：','') +
+      '/公牌:' + (mParts[1] || '公牌奇偶：-').replace('公牌奇偶：','') +
+      '｜R尾數:' + (rParts[0] || '尾數：-').replace('尾數：','') +
+      '/翻邊:' + (rParts[1] || '翻邊：-').replace('翻邊：','') +
+      '｜DS:' + (arguments[2] || '-');
+  }
+
+  function calcRate(key) {
+    const valid = historyData.filter(item => item.actual !== '和' && item[key + 'Status'] !== '-');
+    const hit = valid.filter(item => item[key + 'Status'] === '準').length;
+    const total = valid.length;
+    return { rate: total === 0 ? 0 : Math.round((hit / total) * 100), hit, total };
+  }
+
+  function computePower(state, stats) {
+    const picks = [state.m.pick, state.r.pick, state.ds.pick].filter(p => p === '閒' || p === '莊');
+    const playerCount = picks.filter(p => p === '閒').length;
+    const bankerCount = picks.filter(p => p === '莊').length;
+    const consensus = Math.max(playerCount, bankerCount);
+    const maxRate = Math.max(stats.m.rate, stats.r.rate);
+
+    if (picks.length < 2) return { text:'下注：觀望', cls:'power-box power-wait' };
+    if (consensus === 2) {
+      if (maxRate >= 60) return { text:'下注：大注', cls:'power-box power-strong' };
+      if (maxRate >= 50) return { text:'下注：中注', cls:'power-box power-mid' };
+      return { text:'下注：小注', cls:'power-box power-low' };
+    }
+    return { text:'下注：觀望', cls:'power-box power-wait' };
+  }
+
+  function renderPredict(state) {
+    linePredictEl.innerHTML =
+      colorPick('M', state.m.pick) + '　' +
+      colorPick('R', state.r.pick) + '　' +
+      '<span style="color:#22c55e;font-weight:900;">DS:</span>' + getPickValueHtml(state.ds.pick);
+
+    linePredictMetaEl.textContent = formatPredictMeta(state.m.meta, state.r.meta, state.ds.meta);
+  }
+
+  function renderStatsAndHeat(state) {
+    const m = calcRate('m');
+    const r = calcRate('r');
+    const ds = calcRate('ds');
+
+    const stats = [
+      { cls:'m', name:'M勝率', rate:m.rate },
+      { cls:'r', name:'R勝率', rate:r.rate },
+      { cls:'ds', name:'DS勝率', rate:ds.rate }
+    ];
+    const maxRate = Math.max(...stats.map(s => s.rate));
+
+    lineStatsEl.innerHTML = stats.map(item => {
+      const best = item.rate === maxRate && maxRate > 0 ? ' best' : '';
+      return '<div class="stat ' + item.cls + best + '">' +
+        '<div class="stat-name">' + item.name + '</div>' +
+        '<div class="stat-rate">' + item.rate + '%</div>' +
+      '</div>';
+    }).join('');
+
+    heatBoxEl.textContent = maxRate > 0
+      ? '熱區判斷：' + stats.filter(s => s.rate === maxRate).map(s => s.name.replace('勝率','')).join(' / ') + ' 發威中（' + maxRate + '%）'
+      : '熱區判斷：目前尚無資料';
+
+    if (!pendingPrediction) {
+      const power = computePower(state, {m,r,ds});
+      powerBoxEl.textContent = power.text;
+      powerBoxEl.className = power.cls;
+    }
+  }
+
+  function renderScore(state) {
+    playerScoreEl.textContent = '閒 ' + (state.playerTotal === null ? 0 : state.playerTotal);
+    bankerScoreEl.textContent = '莊 ' + (state.bankerTotal === null ? 0 : state.bankerTotal);
+    winnerTextEl.textContent = state.actual === '閒' ? '閒贏' : state.actual === '莊' ? '莊贏' : '和局';
+    winnerTextEl.className = getWinnerClass(state.actual);
+    detailTextEl.textContent = state.info;
+  }
+
+  function renderHistory() {
+    const liveItems = [];
+
+    if (pendingPrediction) {
+      liveItems.push({
+        sourceRound: pendingPrediction.sourceRound,
+        targetRound: pendingPrediction.targetRound,
+        player: pendingPrediction.sourcePlayer || '-',
+        banker: pendingPrediction.sourceBanker || '-',
+        actual: '-',
+        mPick: pendingPrediction.mPick,
+        rPick: pendingPrediction.rPick,
+        mStatus: '-',
+        rStatus: '-',
+        dsStatus: '-',
+        dsPick: pendingPrediction.dsPick,
+        isLive: true
+      });
+    }
+
+    const items = liveItems.concat(historyData).slice(0, MAX_HISTORY);
+
+    if (items.length === 0) {
+      historyListEl.innerHTML = '<div class="history-empty">目前還沒有歷史紀錄</div>';
+      return;
+    }
+
+    historyListEl.innerHTML = items.map(item => {
+      const mBoxClass = item.mStatus === '準' ? 'hit' : item.mStatus === '失敗' ? 'miss' : 'draw';
+      const rBoxClass = item.rStatus === '準' ? 'hit' : item.rStatus === '失敗' ? 'miss' : 'draw';
+      const dsBoxClass = item.dsStatus === '準' ? 'hit' : item.dsStatus === '失敗' ? 'miss' : 'draw';
+
+      const mCls = item.mStatus === '準' ? 'status-hit' : item.mStatus === '失敗' ? 'status-miss' : 'status-draw';
+      const rCls = item.rStatus === '準' ? 'status-hit' : item.rStatus === '失敗' ? 'status-miss' : 'status-draw';
+      const dsCls = item.dsStatus === '準' ? 'status-hit' : item.dsStatus === '失敗' ? 'status-miss' : 'status-draw';
+
+      const actualClass = item.actual === '和' ? 'draw' : item.actual === '閒' ? 'hit' : item.actual === '莊' ? 'miss' : 'draw';
+      const roundText = '第' + item.sourceRound + '局預測第' + item.targetRound + '局' + (item.isLive ? '（待開）' : '');
+      const actualText = item.actual === '-' ? '待開' : item.actual;
+
+      return '<div class="h-item">' +
+        '<div class="h-top">' + roundText + '</div>' +
+        '<div class="h-grid">' +
+          '<div class="h-cards">' +
+            '<div><strong>閒：</strong>' + (item.player || '-') + '</div>' +
+            '<div><strong>莊：</strong>' + (item.banker || '-') + '</div>' +
+          '</div>' +
+          '<div class="h-mtr">' +
+            '<div class="' + mBoxClass + '"><strong>M</strong><br>' + item.mPick + '（<span class="' + mCls + '">' + item.mStatus + '</span>）</div>' +
+            '<div class="' + rBoxClass + '"><strong>R</strong><br>' + item.rPick + '（<span class="' + rCls + '">' + item.rStatus + '</span>）</div>' +
+            '<div class="' + dsBoxClass + '"><strong>DS</strong><br>' + item.dsPick + '（<span class="' + dsCls + '">' + item.dsStatus + '</span>）</div>' +
+          '</div>' +
+          '<div class="h-result ' + actualClass + '">實際：' + actualText + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function highlight() {
+    cells.forEach(c => c.classList.remove('active'));
+    if (selectedIndex !== null) {
+      const target = document.querySelector("[data-index='" + selectedIndex + "']");
+      if (target) target.classList.add('active');
+    }
+  }
+
+  function renderBoard() {
+    cells.forEach(cell => {
+      const idx = parseInt(cell.dataset.index, 10);
+      const val = values[idx];
+      cell.textContent = val;
+      if (val) cell.classList.remove('empty');
+      else cell.classList.add('empty');
+    });
+    highlight();
+  }
+
+  function renderAll() {
+    const state = getRoundState();
+    renderBoard();
+    renderScore(state);
+    renderPredict(state);
+    renderStatsAndHeat(state);
+    renderHistory();
+    scheduleSave();
+  }
+
+  function inputCard(card) {
+    if (selectedIndex !== null) {
+      values[selectedIndex] = card;
+      selectedIndex = null;
+    } else if (currentStep < 6) {
+      values[order[currentStep]] = card;
+      currentStep += 1;
+    }
+    renderAll();
+    keepPendingOnScreen();
+  }
+
+  function skip() {
+    if (selectedIndex !== null) {
+      values[selectedIndex] = '';
+      selectedIndex = null;
+      renderAll();
+      keepPendingOnScreen();
+      return;
+    }
+    if (currentStep < 6) {
+      currentStep += 1;
+      renderAll();
+      keepPendingOnScreen();
+    }
+  }
+
+  function keepPendingOnScreen() {
+    if (!pendingPrediction) return;
+    linePredictEl.innerHTML =
+      colorPick('M', pendingPrediction.mPick) + '　' +
+      colorPick('R', pendingPrediction.rPick) + '　' +
+      '<span style="color:#22c55e;font-weight:900;">DS:</span>' + getPickValueHtml(pendingPrediction.dsPick);
+    linePredictMetaEl.textContent = formatPredictMeta(
+      pendingPrediction.mMeta,
+      pendingPrediction.rMeta,
+      pendingPrediction.dsMeta
+    );
+    powerBoxEl.textContent = pendingPrediction.powerText;
+    powerBoxEl.className = pendingPrediction.powerClass;
+  }
+
+  function saveRoundAndNext() {
+    const state = getRoundState();
+    const roundNo = roundCounter;
+
+    if (state.playerCards.length < 2 || state.bankerCards.length < 2) {
+      alert('請至少先輸入閒家與莊家的前兩張牌。');
+      return;
+    }
+
+    if (pendingPrediction) {
+      historyData.unshift({
+        sourceRound: pendingPrediction.sourceRound,
+        targetRound: pendingPrediction.targetRound,
+        player: pendingPrediction.sourcePlayer || '-',
+        banker: pendingPrediction.sourceBanker || '-',
+        actual: state.actual,
+        mPick: pendingPrediction.mPick,
+        rPick: pendingPrediction.rPick,
+        mStatus: getHistoryStatus(pendingPrediction.mPick, state.actual),
+        rStatus: getHistoryStatus(pendingPrediction.rPick, state.actual),
+        dsPick: pendingPrediction.dsPick,
+        dsStatus: getHistoryStatus(pendingPrediction.dsPick, state.actual)
+      });
+      historyData = historyData.slice(0, MAX_HISTORY);
+    }
+
+    const m = calcRate('m');
+    const r = calcRate('r');
+    const ds = calcRate('ds');
+    const currentPower = computePower(state, {m,r,ds});
+
+    pendingPrediction = {
+      sourceRound: roundNo,
+      targetRound: roundNo + 1,
+      sourcePlayer: state.playerCards.join(' '),
+      sourceBanker: state.bankerCards.join(' '),
+      mPick: String(state.m.pick),
+      rPick: String(state.r.pick),
+      dsPick: String(state.ds.pick),
+      mMeta: state.m.meta,
+      rMeta: state.r.meta,
+      dsMeta: state.ds.meta,
+      powerText: currentPower.text,
+      powerClass: currentPower.cls
+    };
+
+    roundCounter = roundNo + 1;
+    values = ['', '', '', '', '', ''];
+    currentStep = 0;
+    selectedIndex = null;
+
+    renderAll();
+    keepPendingOnScreen();
+  }
+
+  function clearBoard() {
+    values = ['', '', '', '', '', ''];
+    currentStep = 0;
+    selectedIndex = null;
+    renderAll();
+    keepPendingOnScreen();
+  }
+
+  function clearHistory() {
+    historyData = [];
+    pendingPrediction = null;
+    roundCounter = 1;
+    renderAll();
+  }
+
+  cells.forEach(cell => {
+    cell.addEventListener('click', function () {
+      selectedIndex = parseInt(cell.dataset.index, 10);
+      highlight();
+      scheduleSave();
+    }, { passive:true });
+  });
+
+  cardButtonsEl.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-card]');
+    if (!btn) return;
+    inputCard(btn.dataset.card);
+  });
+
+  skipBtn.addEventListener('click', skip);
+  nextBtn.addEventListener('click', saveRoundAndNext);
+  clearBoardBtn.addEventListener('click', clearBoard);
+  clearHistoryBtn.addEventListener('click', clearHistory);
+
+  loadFromStorage();
+  renderAll();
+  keepPendingOnScreen();
+})();
+</script>
+</body>
+</html>
